@@ -1,0 +1,109 @@
+# Circular Buffer and Heart Rate Generator
+
+## Table of Contents
+
+- [Circular Buffer and Heart Rate Generator](#circular-buffer-and-heart-rate-generator)
+  - [Table of Contents](#table-of-contents)
+  - [Objectives](#objectives)
+  - [Implementation and Design](#implementation-and-design)
+    - [layout](#layout)
+    - [Circular Buffer](#circular-buffer)
+    - [Heart Rate Generator](#heart-rate-generator)
+    - [Flow of the Program](#flow-of-the-program)
+  - [Building and Running](#building-and-running)
+    - [Testing](#testing)
+      - [Memory Leak Detection (Linux)](#memory-leak-detection-linux)
+
+## Objectives
+
+* Implementing a circular buffer data structure
+* Implementing a random heart-rate generator
+* Writing a custom Makefile for compilation
+* Documenting work with a comprehensive README.
+* Use `Git` for version control
+* Test the implementation with a test suite using `Google Test` framework
+
+
+## Implementation and Design
+
+### layout
+The project layout is as follows:
+```
+$ tree
+.
+├── build                   # Generated build files (created after running Makefile)
+├── Makefile                # Custom Makefile for building the project
+├── README                  # Documentation
+├── src                     
+│   ├── heart_rate_gen.c    # Heart rate generator implementation
+│   ├── heart_rate_gen.h    # Heart rate generator header
+│   ├── main.c              # Entry point for the main program
+│   ├── ring_buffer.c       # Circular buffer implementation
+│   └── ring_buffer.h       # Circular buffer header
+└── test                    # Unit tests
+    ├── CMakeLists.txt      # CMake configuration for tests
+    ├── heart_rate_gen_test.cpp  # Tests for heart rate generator
+    └── ring_buffer_test.cpp     # Tests for circular buffer
+
+```
+
+### Circular Buffer
+
+
+A circular buffer is a data structure that uses a single, fixed-size buffer as if it were connected end-to-end. This structure lends itself easily to buffering data streams. The circular buffer is a FIFO data structure that uses a single, fixed-size buffer as if it were connected end-to-end. This structure lends itself easily to buffering data streams. The circular buffer is implemented in the `ring_buffer.c` and `ring_buffer.h` files and is thread-safe.
+
+### Heart Rate Generator
+
+Heart Rate Generator
+The heart rate generator simulates random heart rate values, providing a practical example of how to use the circular buffer for real-time data processing. The heart rate generator is implemented in the `heart_rate_gen.c` and `heart_rate_gen.h` files.
+
+
+### Flow of the Program
+
+``` mermaid
+graph TD
+    A[Start Program] --> B[Parse Command-Line Argument]
+    B -->|Valid Buffer Size| C[Initialize Circular Buffer]
+    B -->|Invalid Buffer Size| Z[Exit Program with Error]
+    C --> D[Setup Signal Handlers]
+    D --> E[Generate Heart Rate]
+    E --> F[Update Buffer with value]
+    F --> G[Calculate EMA]
+    G --> H[Print Heart Rate and EMA]
+    H --> I{Keep Running?}
+    I -->|Yes| E
+    I -->|SIGTERM or SIGINT| J[Free Ring Buffer Resources]
+    J --> K[Exit Program]
+    Z --> K
+```
+
+## Building and Running
+
+The project uses a custom `Makefile` for compilation on different platforms.
+We assume `MinGW` is installed on Windows for building and testing.
+The `Makefile` has the following targets:
+```
+* all        - Build the main program (default)
+* run ARGS=   - Build and run the main program with arguments
+* test       - Build and run tests
+* memcheck   - Run the tests with valgrind (Linux)
+* clean      - Remove build files
+* help       - Show this help message and exit
+```
+
+to run the program, simple run `make run ARGS=<buffer-size>` where `<buffer-size>` is the  desired size of the circular buffer, and is between the range of 1 and `INT_MAX`.
+
+### Testing
+
+The project uses the `Google Test` framework for testing. The tests are located in the `test` directory.
+The tests can be run by executing the following commands:
+```
+$ make test
+```
+
+#### Memory Leak Detection (Linux)
+
+The project uses `valgrind` for memory leak detection. The memory leak detection can be run by executing the following commands:
+```
+$ make memcheck
+```
