@@ -83,6 +83,12 @@ test:	$(BUILD_TEST_DIR)
 	@cd $(BUILD_TEST_DIR) && cmake ${PROJECT_DIR}/${TEST_DIR} && cmake --build .
 	@cd $(BUILD_TEST_DIR) && ctest --output-on-failure --verbose
 
+# Run tests with valgrind
+.PHONY: memcheck
+memcheck: $(BUILD_TEST_DIR) test
+	@echo "Running tests with valgrind..."
+	@cd $(BUILD_TEST_DIR) && ctest -T memcheck --output-on-failure --overwrite MemoryCheckCommandOptions="--leak-check=full --error-exitcode=1" --verbose
+
 # Clean build files
 .PHONY: clean
 clean:
@@ -101,5 +107,6 @@ help:
 	@echo "  all        - Build the main program (default)"
 	@echo "  run        - Build and run the program"
 	@echo "  test       - Build and run tests"
+	@echo "  memcheck   - Run the tests with valgrind"
 	@echo "  clean      - Remove build files"
 	@echo "  help       - Show this help message and exit"
