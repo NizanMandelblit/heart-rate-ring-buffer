@@ -1,6 +1,7 @@
 #include "ring_buffer.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct {
     int *buffer;  // Since size is not known at compile time, we need to use a pointer to allocate
@@ -134,16 +135,10 @@ rb_free_buffer() {
     pthread_mutex_lock(&ring_buffer_g.lock);
 
     free(ring_buffer_g.buffer);
-    ring_buffer_g.buffer = NULL;
-    ring_buffer_g.is_initialized = false;
-    ring_buffer_g.size = 0;
-    ring_buffer_g.head = 0;
-    ring_buffer_g.tail = 0;
-    ring_buffer_g.count = 0;
-    ring_buffer_g.is_full = false;
-
     pthread_mutex_unlock(&ring_buffer_g.lock);
     pthread_mutex_destroy(&ring_buffer_g.lock);
+
+    memset(&ring_buffer_g, 0, sizeof(ring_buffer_t));
 }
 
 bool
