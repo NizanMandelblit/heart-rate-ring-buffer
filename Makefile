@@ -25,7 +25,7 @@ endef
 # Compiler settings and flags
 CC := gcc
 CXX := g++
-CFLAGS := -Wall -Wextra -I./src
+CFLAGS := -Wall -Wextra -Werror -I./src
 CXXFLAGS := $(CFLAGS)
 LDFLAGS :=
 
