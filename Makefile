@@ -74,7 +74,7 @@ $(TARGET): $(OBJS)
 run: 
 	@echo "Building and running program..."
 	@$(MAKE) --no-print-directory $(TARGET)
-	$(RUN_PREFIX)$(TARGET)
+	$(RUN_PREFIX)$(TARGET) $(ARGS)
 
 # Build and run tests using CMake
 .PHONY: test
@@ -105,7 +105,7 @@ help:
 	$(call print_os_info)
 	@echo "\nAvailable targets:"
 	@echo "  all        - Build the main program (default)"
-	@echo "  run        - Build and run the program"
+	@echo "  run ARGS=   - Build and run the main program with arguments"
 	@echo "  test       - Build and run tests"
 	@echo "  memcheck   - Run the tests with valgrind"
 	@echo "  clean      - Remove build files"
