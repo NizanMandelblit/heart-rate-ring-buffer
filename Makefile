@@ -98,7 +98,7 @@ endif
 PROJECT_NAME := heart_rate_project
 package:
 	@echo "Packaging project for distribution..."
-	zip -r $(PROJECT_NAME).zip $(SRC_DIR) $(TEST_DIR) Makefile README .gitignore .git
+	zip -r $(PROJECT_NAME).zip $(SRC_DIR) $(TEST_DIR) Makefile README .gitignore .git LICENSE
 
 # Show help
 .PHONY: help
