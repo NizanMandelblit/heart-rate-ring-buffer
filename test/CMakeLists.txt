@@ -25,6 +25,11 @@ enable_testing()
 add_executable(ring_buffer_test ring_buffer_test.cpp ../src/ring_buffer.c)
 target_link_libraries(ring_buffer_test gtest gtest_main)
 
+# Add heart_rate_gen_test executable and link GoogleTest libraries
+add_executable(heart_rate_gen_test heart_rate_gen_test.cpp ../src/ring_buffer.c ../src/heart_rate_gen.c)
+target_link_libraries(heart_rate_gen_test gtest gtest_main)
+
 
 # Register the tests with CTest
 add_test(NAME ring_buffer_test COMMAND ring_buffer_test)
+add_test(NAME heart_rate_gen_test COMMAND heart_rate_gen_test)
