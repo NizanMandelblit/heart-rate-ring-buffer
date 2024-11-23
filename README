@@ -52,9 +52,66 @@ $ tree
 
 A circular buffer is a data structure that uses a single, fixed-size buffer as if it were connected end-to-end. This structure lends itself easily to buffering data streams. The circular buffer is a FIFO data structure that uses a single, fixed-size buffer as if it were connected end-to-end. This structure lends itself easily to buffering data streams. The circular buffer is implemented in the `ring_buffer.c` and `ring_buffer.h` files and is thread-safe.
 
+I decided to implement the  ring buffer in a global static instance pattern, so that only one instance of the ring buffer can be created at a time, as I felt this is all that is needed for the heart rate generator.
+
+Notes and examples of the API functions are as follows (please also refer to documentation in the header file for more details):
+* `rb_init_buffer`: must be called before using any other API functions.
+Failure to initialize the buffer will result in errors when attempting to use the API. initialing again has no effect besides error log, and the buffer must be freed before reinitializing.
+`rb_init_buffer(10); // Initialize buffer with size 10`
+
+
+* `rb_add_element`: Adds an element to the ring buffer. If the buffer is full, it overwrites the oldest element.
+```c
+rb_init_buffer(2);   // Initialize buffer with size 2
+rb_add_element(42);  // Add element 42
+rb_add_element(84);  // Add element 84
+rb_add_element(126); // buffer is full, overwrites oldest element which is 42 in 
+                     // FIFO order
+```
+
+* `rb_remove_element`: Removes the oldest element from the ring buffer. Returns the removed element through a pointer.
+```c
+int value;
+rb_init_buffer(5);
+rb_add_element(42);
+if (rb_remove_element(&value)) {
+    printf("Removed: %d\n", value); // "Removed: 42"
+} else {
+    printf("Buffer is empty\n");
+}
+```
+
+
+* `rb_is_full`: Checks if the buffer is full.
+```c
+rb_init_buffer(2);
+rb_add_element(10);
+rb_add_element(20);
+if (rb_is_full()) { // returns true
+    printf("Buffer is full\n");
+}
+```
+
+
+* `rb_is_empty`: Checks if the buffer is empty.
+```c
+rb_init_buffer(3);
+if (rb_is_empty()) { // returns true
+    printf("Buffer is empty\n");
+}
+rb_add_element(42);
+if (!rb_is_empty()) { // returns false
+    printf("Buffer is not empty\n");
+}
+```
+
+* `rb_free_buffer`: the buffer must be freed using `rb_free_buffer()` before the program exits to avoid memory leaks. calling `rb_free_buffer()` more than once or before initializing has no effect besides error log.
+* `rb_get_element_at` : Retrieves an element at a specific index from the buffer without removing it, with bounds checking.
+* `rb_is_initialized` : returns true if the buffer is initialized, false otherwise.
+* `rb_get_last_element` : Retrieves the last element added to the buffer without removing it.
+
 ### Heart Rate Generator
 
-Heart Rate Generator
 The heart rate generator simulates random heart rate values, providing a practical example of how to use the circular buffer for real-time data processing. The heart rate generator is implemented in the `heart_rate_gen.c` and `heart_rate_gen.h` files.
 
 
