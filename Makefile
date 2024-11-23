@@ -1,25 +1,20 @@
-# Detect operating system
 ifeq ($(OS),Windows_NT)
     DETECTED_OS := Windows
-    RM := del /Q
-    MKDIR := mkdir
-    SEP := \\
-    EXE := .exe
-    RUN_PREFIX :=
+    CMAKE_GENERATOR := MinGW Makefiles
 else
-    DETECTED_OS := $(shell uname -s)
-    RM := rm -f
-    MKDIR := mkdir -p
-    SEP := /
-    EXE :=
-    RUN_PREFIX := ./
+	DETECTED_OS := $(shell uname -s)
+	CMAKE_GENERATOR := Unix Makefiles
 endif
+RM := rm -f
+MKDIR := mkdir -p
+SEP := /
+EXE :=
+RUN_PREFIX := ./
+
 
 # Output OS detection info
 define print_os_info
 	@echo "Detected OS: $(DETECTED_OS)"
-	@echo "Using path separator: '$(SEP)'"
-	@echo "Executable extension: '$(EXE)'"
 endef
 
 # Compiler settings and flags
@@ -80,7 +75,7 @@ run:
 .PHONY: test
 test:	$(BUILD_TEST_DIR)
 	@echo "Building and running tests..."
-	@cd $(BUILD_TEST_DIR) && cmake ${PROJECT_DIR}/${TEST_DIR} && cmake --build .
+	@cd $(BUILD_TEST_DIR) && cmake -G "$(CMAKE_GENERATOR)" ${PROJECT_DIR}/${TEST_DIR} && cmake --build .
 	@cd $(BUILD_TEST_DIR) && ctest --output-on-failure --verbose
 
 # Run tests with valgrind
@@ -107,6 +102,8 @@ help:
 	@echo "  all        - Build the main program (default)"
 	@echo "  run ARGS=   - Build and run the main program with arguments"
 	@echo "  test       - Build and run tests"
-	@echo "  memcheck   - Run the tests with valgrind"
+ifeq ($(DETECTED_OS),Linux)
+	@echo "  memcheck   - Run the tests with valgrind (Linux only)"
+endif
 	@echo "  clean      - Remove build files"
 	@echo "  help       - Show this help message and exit"
