@@ -94,16 +94,23 @@ else
 	rm -rf $(BUILD_DIR)
 endif
 
+.PHONY: package
+PROJECT_NAME := heart_rate_project
+package:
+	@echo "Packaging project for distribution..."
+	zip -r $(PROJECT_NAME).zip $(SRC_DIR) $(TEST_DIR) Makefile README .gitignore .git
+
 # Show help
 .PHONY: help
 help:
 	$(call print_os_info)
 	@echo "\nAvailable targets:"
 	@echo "  all        - Build the main program (default)"
-	@echo "  run ARGS=   - Build and run the main program with arguments"
+	@echo "  run ARGS=  - Build and run the main program with arguments"
 	@echo "  test       - Build and run tests"
 ifeq ($(DETECTED_OS),Linux)
 	@echo "  memcheck   - Run the tests with valgrind (Linux only)"
 endif
 	@echo "  clean      - Remove build files"
+	@echo "  package    - Package project for distribution"
 	@echo "  help       - Show this help message and exit"
