@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h> // For sleep
+#include <errno.h>
+#include <limits.h>
 
 #define SAMPLE_INTERVAL 1 // Interval in seconds to sample the heart rate
 
@@ -26,23 +28,37 @@ main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    // Parse the buffer size
-    int buffer_size = atoi(argv[1]);
-    if (buffer_size <= 0) {
-        fprintf(stderr, "Buffer size must be a positive integer.\n");
+    // Parse the buffer size using strtol
+    char *endptr;
+    errno = 0; // Reset errno before calling strtol
+    long buffer_size = strtol(argv[1], &endptr, 10);
+
+    // Check for conversion errors
+    if (errno != 0 || *endptr != '\0') {
+        fprintf(stderr, "Error: Invalid buffer size. Must be a numeric value.\n");
         return EXIT_FAILURE;
     }
+
+    // Check if the buffer size is within the limits of an int
+    if (buffer_size <= 0 || buffer_size > INT_MAX) {
+        fprintf(stderr,
+                "Error: Buffer size must be a positive integer within the range 1 to %d.\n",
+                INT_MAX);
+        return EXIT_FAILURE;
+    }
+
+    int buffer_size_int = (int)buffer_size;
 
     // handle graceful exit
     signal(SIGINT, signal_handler);
 
     // Initialize the ring buffer
-    rb_init_buffer(buffer_size);
+    rb_init_buffer(buffer_size_int);
 
     // Smoothing factor for EMA calculation
     double smoothing_factor = 0.1;
 
-    printf("Starting heart rate monitor with buffer size: %d\n", buffer_size);
+    printf("Starting heart rate monitor with buffer size: %d\n", buffer_size_int);
 
     while (keep_running_g) {
         // Generate a new random heart rate
