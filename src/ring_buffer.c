@@ -162,7 +162,7 @@ rb_get_element_at(int index, int *element) {
     if (!element)
         return -1;
 
-    if (index < 0 || index >= ring_buffer_g.count) {
+    if (index < 0 || (size_t)index >= ring_buffer_g.count) {
         fprintf(stderr, "Index out of bounds: %d\n", index);
         return -1;
     }
