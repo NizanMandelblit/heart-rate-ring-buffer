@@ -111,3 +111,41 @@ TEST_F(RingBufferTest, GetElementAtIndex) {
 
     EXPECT_EQ(rb_get_element_at(5, &element), -1); // Invalid index
 }
+
+// Test retrieving the last element
+TEST_F(RingBufferTest, GetLastElement) {
+    int element;
+
+    // Test: Buffer uninitialized
+    rb_free_buffer(); // Free the buffer to simulate uninitialized state
+    EXPECT_EQ(rb_get_last_element(&element), -1);
+
+    // Reinitialize buffer for further tests
+    rb_init_buffer(5);
+
+    // Test: Buffer empty
+    EXPECT_EQ(rb_get_last_element(&element), -1);
+
+    // Test: Buffer with one element
+    rb_add_element(10);
+    EXPECT_EQ(rb_get_last_element(&element), 0);
+    EXPECT_EQ(element, 10);                      // Last element should be 10
+
+    // Test: Buffer with multiple elements
+    rb_add_element(20);
+    rb_add_element(30);
+    EXPECT_EQ(rb_get_last_element(&element), 0);
+    EXPECT_EQ(element, 30);                      // Last element should be 30
+
+    // Test: Overwrite behavior
+    rb_add_element(40);
+    rb_add_element(50);
+    rb_add_element(60); // Overwrites 10 (oldest element)
+    EXPECT_EQ(rb_get_last_element(&element), 0);
+    EXPECT_EQ(element, 60);                      // Last element should be 60
+}
+
+// Test: Null pointer for element
+TEST_F(RingBufferTest, GetLastElementNullPointer) {
+    EXPECT_EQ(rb_get_last_element(nullptr), -1); // Should fail when passed a null pointer
+}
