@@ -1,0 +1,72 @@
+name: CMake Build and Test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-linux:
+    name: Build and Test on Linux
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake g++ libgtest-dev valgrind
+
+      - name: Install gtest
+        uses: MarkusJx/googletest-installer@v1.1
+
+      - name: Run Tests with memory leaks check
+        run: |
+          make memcheck
+  build-windows:
+    name: Build and Test on Windows
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install CMake
+        run: |
+          choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
+
+      - name: Install gtest
+        uses: MarkusJx/googletest-installer@v1.1
+
+      - name: Run Tests
+        run: |
+          make test
+
+  build-macos:
+    name: Build and Test on macOS
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          brew install --formula cmake
+
+      - name: Install Google Test
+        run: |
+          git clone https://github.com/google/googletest.git
+          cd googletest
+          mkdir -p build
+          cd build
+          cmake ..
+          make
+          sudo make install
+
+      - name: Run Tests
+        run: |
+          make test
+
+
