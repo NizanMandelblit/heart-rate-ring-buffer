@@ -23,14 +23,25 @@ rb_init_buffer(int size) {
         fprintf(stderr, "Buffer already initialized\n");
         return;
     }
-    pthread_mutex_init(&ring_buffer_g.lock, NULL);
 
-    pthread_mutex_lock(&ring_buffer_g.lock);
+    int ret = pthread_mutex_init(&ring_buffer_g.lock, NULL);
+    if (ret != 0) {
+        fprintf(stderr, "Mutex initialization failed: %s\n", strerror(ret));
+        exit(EXIT_FAILURE);
+    }
+
+    ret = pthread_mutex_lock(&ring_buffer_g.lock);
+    if (ret != 0) {
+        fprintf(stderr, "Mutex lock failed: %s\n", strerror(ret));
+        pthread_mutex_destroy(&ring_buffer_g.lock);
+        exit(EXIT_FAILURE);
+    }
 
     ring_buffer_g.buffer = (int *)malloc(size * sizeof(int));
     if (!ring_buffer_g.buffer) {
         fprintf(stderr, "Memory allocation failed\n");
         pthread_mutex_unlock(&ring_buffer_g.lock);
+        pthread_mutex_destroy(&ring_buffer_g.lock);
         exit(EXIT_FAILURE);
     }
 
@@ -40,7 +51,12 @@ rb_init_buffer(int size) {
     ring_buffer_g.is_full = false;
     ring_buffer_g.is_initialized = true;
 
-    pthread_mutex_unlock(&ring_buffer_g.lock);
+    ret = pthread_mutex_unlock(&ring_buffer_g.lock);
+    if (ret != 0) {
+        fprintf(stderr, "Mutex unlock failed: %s\n", strerror(ret));
+        pthread_mutex_destroy(&ring_buffer_g.lock);
+        exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -49,23 +65,26 @@ rb_add_element(int element) {
         fprintf(stderr, "Buffer not initialized\n");
         return;
     }
-    pthread_mutex_lock(&ring_buffer_g.lock);
+
+    int ret = pthread_mutex_lock(&ring_buffer_g.lock);
+    if (ret != 0) {
+        fprintf(stderr, "Mutex lock failed: %s\n", strerror(ret));
+        return;
+    }
 
     ring_buffer_g.buffer[ring_buffer_g.tail] = element;
     ring_buffer_g.tail = (ring_buffer_g.tail + 1) % ring_buffer_g.size;
 
-    if (ring_buffer_g.is_full) {
-        // If full, advance the head to overwrite the oldest data
+    if (ring_buffer_g.is_full)
         ring_buffer_g.head = (ring_buffer_g.head + 1) % ring_buffer_g.size;
-    } else {
-        // Increment the count if the buffer is not full
+    else
         ring_buffer_g.count++;
-    }
 
-    // Mark the buffer as full if tail catches up to head
     ring_buffer_g.is_full = (ring_buffer_g.tail == ring_buffer_g.head);
 
-    pthread_mutex_unlock(&ring_buffer_g.lock);
+    ret = pthread_mutex_unlock(&ring_buffer_g.lock);
+    if (ret != 0)
+        fprintf(stderr, "Mutex unlock failed: %s\n", strerror(ret));
 }
 
 bool
@@ -75,24 +94,28 @@ rb_remove_element(int *element) {
         return false;
     }
 
-    pthread_mutex_lock(&ring_buffer_g.lock);
+    int ret = pthread_mutex_lock(&ring_buffer_g.lock);
+    if (ret != 0) {
+        fprintf(stderr, "Mutex lock failed: %s\n", strerror(ret));
+        return false;
+    }
 
     if (ring_buffer_g.count == 0) {
-        // Buffer is empty
         pthread_mutex_unlock(&ring_buffer_g.lock);
         fprintf(stderr, "Buffer is empty\n");
-        return false; // Error
+        return false;
     }
+
     if (element != NULL)
         *element = ring_buffer_g.buffer[ring_buffer_g.head];
     ring_buffer_g.head = (ring_buffer_g.head + 1) % ring_buffer_g.size;
-
     ring_buffer_g.count--;
-
-    // Buffer is no longer full after removing an element
     ring_buffer_g.is_full = false;
 
-    pthread_mutex_unlock(&ring_buffer_g.lock);
+    ret = pthread_mutex_unlock(&ring_buffer_g.lock);
+    if (ret != 0)
+        fprintf(stderr, "Mutex unlock failed: %s\n", strerror(ret));
+
     return true;
 }
 
@@ -132,11 +155,24 @@ rb_free_buffer() {
         return;
     }
 
-    pthread_mutex_lock(&ring_buffer_g.lock);
+    int ret = pthread_mutex_lock(&ring_buffer_g.lock);
+    if (ret != 0) {
+        fprintf(stderr, "Mutex lock failed: %s\n", strerror(ret));
+        return;
+    }
 
-    free(ring_buffer_g.buffer);
-    pthread_mutex_unlock(&ring_buffer_g.lock);
-    pthread_mutex_destroy(&ring_buffer_g.lock);
+    if (ring_buffer_g.buffer) {
+        free(ring_buffer_g.buffer);
+        ring_buffer_g.buffer = NULL;
+    }
+
+    ret = pthread_mutex_unlock(&ring_buffer_g.lock);
+    if (ret != 0)
+        fprintf(stderr, "Mutex unlock failed: %s\n", strerror(ret));
+
+    ret = pthread_mutex_destroy(&ring_buffer_g.lock);
+    if (ret != 0)
+        fprintf(stderr, "Mutex destroy failed: %s\n", strerror(ret));
 
     memset(&ring_buffer_g, 0, sizeof(ring_buffer_t));
 }
