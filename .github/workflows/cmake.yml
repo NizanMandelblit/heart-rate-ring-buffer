@@ -32,10 +32,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install CMake
+      - name: Download CMake
         run: |
-          choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
-
+          Invoke-WebRequest -Uri https://github.com/Kitware/CMake/releases/download/v3.31.2/cmake-3.31.2-windows-x86_64.zip -OutFile cmake.zip
+          Expand-Archive cmake.zip -DestinationPath C:\cmake
+          echo "C:\cmake\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+      
       - name: Install gtest
         uses: MarkusJx/googletest-installer@v1.1
 
